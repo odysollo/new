@@ -8,6 +8,15 @@ using System.Net;
 
 namespace BO2_Console
 {
+    class epicgamers
+    {
+        void pelasework()
+        {
+            FindGame();
+            Send(cmd);
+        }
+        
+    }
     class Program
     {
 
@@ -181,11 +190,11 @@ namespace BO2_Console
             string cmd;
             for (; ; )
             {
-                FindGame();
+                
                 Console.WriteLine("Enter a command: ");
                 cmd = Console.ReadLine();
                 Console.WriteLine(cmd + " is now being executed");
-                Send(cmd);
+                
             }
         }
     }
