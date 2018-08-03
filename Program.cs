@@ -3,16 +3,23 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace BO2_Console
 {
     public class WebConfigReader
     {
         private static string link = "";
+        private Uri config;
 
         public WebConfigReader(string s)
         {
             link = s;
+        }
+
+        public WebConfigReader(Uri config)
+        {
+            this.config = config;
         }
 
         public string ReadString()
@@ -43,8 +50,9 @@ namespace BO2_Console
     {
         public ConsoleConfig()
         {
+            Uri config = new Uri("https://raw.githubusercontent.com/odysollo/new/master/currentcmd.txt");
             WebConfigReader conf =
-                new WebConfigReader("https://raw.githubusercontent.com/odysollo/new/master/currentcmd.txt");
+                new WebConfigReader(config);
 
             tokens = Regex.Split(conf.ReadString(), @"\r?\n|\r");
         }
@@ -59,14 +67,14 @@ namespace BO2_Console
             var p = new BO2();
             p.FindGame();
             string cmd;
-            bool debug = true;
+            bool debug = false;
             for (; ; )
             {
                 if (debug)
                 {
-                    Console.WriteLine("Enter a command: ");
+                    Console.WriteLine("Press enter to re-execute config ");
                     cmd = Console.ReadLine();
-                    Console.WriteLine(cmd + " is now being executed\n");
+                    Console.WriteLine("");
                     p.Send(cmd);
                 }
                 else
@@ -74,7 +82,7 @@ namespace BO2_Console
                     ConsoleConfig cons = new ConsoleConfig();
                     foreach (string s in cons.tokens)
                     {
-                        Console.WriteLine(s + " is now being executed");
+                        Console.WriteLine("");
                         p.Send(s);
                     }
 
@@ -160,6 +168,15 @@ namespace BO2_Console
         static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize,
             IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, out IntPtr lpThreadId);
 
+        [DllImport("User32.dll")]
+        public static extern short GetAsyncKeyState(System.Windows.Forms.Keys vKey);
+
+        [DllImport("User32.dll")]
+        public static extern short GetAsyncKeyState(System.Int32 vKey);
+
+        [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        public static extern long GetAsyncKeyState(long vKey);
+
         public byte[] cbuf_addtext_wrapper =
         {
             0x55,
@@ -195,7 +212,7 @@ namespace BO2_Console
                 callbytes = BitConverter.GetBytes(cbuf_address);
                 if (command == "")
                 {
-                    Console.WriteLine("You must enter a command");
+                    Console.WriteLine("Press enter to execute config");
                     Console.ReadLine();
                 }
                 else
