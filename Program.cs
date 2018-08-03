@@ -43,11 +43,6 @@ namespace BO2_Console
     {
         public ConsoleConfig()
         {
-            string url = "https://raw.githubusercontent.com/odysollo/new/master/currentcmd.txt";
-            WebConfigReader conf =
-                new WebConfigReader(url);
-
-            tokens = Regex.Split(conf.ReadString(), @"\r?\n|\r");
         }
 
         public string[] tokens;
@@ -65,14 +60,21 @@ namespace BO2_Console
             {
                 if (debug)
                 {
-                    Console.WriteLine("Press enter to execute your config");
+                    Console.WriteLine("Please type in a command");
                     cmd = Console.ReadLine();
                     p.Send(cmd);
                 }
                 else
                 {
-                    ConsoleConfig cons = new ConsoleConfig();
+                    Console.WriteLine("Please enter your config's url");
+                    string url = Console.ReadLine();
+                    Console.WriteLine("Press enter to execute config");
+                    Console.ReadLine();
+                    WebConfigReader conf =
+                    new WebConfigReader(url);
+                    tokens = Regex.Split(conf.ReadString(), @"\r?\n|\r");
                     foreach (string s in cons.tokens)
+                    //ConsoleConfig cons = new ConsoleConfig();
                     {
                         p.Send(s);
                     }
@@ -194,10 +196,10 @@ namespace BO2_Console
                 callbytes = BitConverter.GetBytes(cbuf_address);
                 if (command == "")
                 {
-                    Console.WriteLine("Please enter your config's url");
-                    string url = Console.ReadLine();
-                    Console.WriteLine("Press enter to execute config");
-                    Console.ReadLine();
+                    //Console.WriteLine("Please enter your config's url");
+                    //string url = Console.ReadLine();
+                    //Console.WriteLine("Press enter to execute config");
+                    //Console.ReadLine();
                 }
                 else
                 {
@@ -249,6 +251,12 @@ namespace BO2_Console
                 cbuf_address = 0x5BDF70;
                 nop_address = 0x8C90DA;
                 dwPID = Process.GetProcessesByName("t6mp")[0].Id;
+            }
+            else if (Process.GetProcessesByName("t6mpv43").Length != 0)
+            {
+                cbuf_address = 0x5BDF70;
+                nop_address = 0x8C90DA;
+                dwPID = Process.GetProcessesByName("t6mpv43")[0].Id;
             }
             else
             {
