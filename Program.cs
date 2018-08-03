@@ -20,20 +20,20 @@ namespace BO2_Console
 
         public float ReadFloat()
         {
-            string aimbotvalueAsString = new WebClient().DownloadString(link);
-            return float.Parse(aimbotvalueAsString);
+            string commandAsString = new WebClient().DownloadString(link);
+            return float.Parse(commandAsString);
         }
 
         public bool ReadBool()
         {
-            string aimbotvalueAsString = new WebClient().DownloadString(link);
-            return bool.Parse(aimbotvalueAsString);
+            string commandAsString = new WebClient().DownloadString(link);
+            return bool.Parse(commandAsString);
         }
 
         public int ReadInt()
         {
-            string aimbotvalueAsString = new WebClient().DownloadString(link);
-            return int.Parse(aimbotvalueAsString);
+            string commandAsString = new WebClient().DownloadString(link);
+            return int.Parse(commandAsString);
         }
         public class ConsoleConfig
         {
@@ -44,8 +44,10 @@ namespace BO2_Console
                 cmd = fov.ReadFloat();
             }
         }
-        class Program
+    }
+    class Program
         {
+
             static void Main(string[] args)
             {
                 var p = new BO2();
@@ -61,7 +63,6 @@ namespace BO2_Console
                 }
             }
         }
-
         class BO2
         {
             #region Mem Functions & Defines
@@ -164,6 +165,7 @@ namespace BO2_Console
             #endregion
             public void Send(string command)
             {
+
                 try
                 {
                     callbytes = BitConverter.GetBytes(cbuf_address);
@@ -228,4 +230,3 @@ namespace BO2_Console
             }
         }
     }
-}
