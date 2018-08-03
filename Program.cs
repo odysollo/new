@@ -10,6 +10,7 @@ namespace BO2_Console
 {
     class Program
     {
+
         #region Mem Functions & Defines
         [Flags]
         public enum ProcessAccessFlags : uint
@@ -100,17 +101,91 @@ namespace BO2_Console
         public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         [DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
+        IntPtr hProcess = IntPtr.Zero;
+        int dwPID = -1;
+        uint cbuf_address;
+        uint nop_address;
+        byte[] callbytes;
+        IntPtr cbuf_addtext_alloc = IntPtr.Zero;
+        byte[] commandbytes;
+        IntPtr commandaddress;
+        byte[] nopBytes = { 0x90, 0x90 };
 
         #endregion
+        void Send(string command)
+        {
+            try
+            {
+                callbytes = BitConverter.GetBytes(cbuf_address);
+                if (command == "")
+                {
+                    Console.WriteLine("You must enter a command");
+                    Console.ReadLine();
+                }
+                else
+                {
+                    if (cbuf_addtext_alloc == IntPtr.Zero)
+                    {
+                        cbuf_addtext_alloc = VirtualAllocEx(hProcess, IntPtr.Zero, (IntPtr)cbuf_addtext_wrapper.Length, AllocationType.Commit | AllocationType.Reserve, MemoryProtection.ExecuteReadWrite);
+                        commandbytes = System.Text.Encoding.ASCII.GetBytes(command);
+                        commandaddress = VirtualAllocEx(hProcess, IntPtr.Zero, (IntPtr)(commandbytes.Length), AllocationType.Commit | AllocationType.Reserve, MemoryProtection.ExecuteReadWrite);
+                        int bytesWritten = 0;
+                        int bytesWritten2 = commandbytes.Length;
+                        WriteProcessMemory(hProcess, commandaddress, commandbytes, commandbytes.Length, out bytesWritten2);
+
+                        Array.Copy(BitConverter.GetBytes(commandaddress.ToInt64()), 0, cbuf_addtext_wrapper, 9, 4);
+                        Array.Copy(callbytes, 0, cbuf_addtext_wrapper, 16, 4);
+
+                        WriteProcessMemory(hProcess, cbuf_addtext_alloc, cbuf_addtext_wrapper, cbuf_addtext_wrapper.Length, out bytesWritten);
+
+                        IntPtr bytesOut;
+                        CreateRemoteThread(hProcess, IntPtr.Zero, 0, cbuf_addtext_alloc, IntPtr.Zero, 0, out bytesOut);
+
+                        if (cbuf_addtext_alloc != IntPtr.Zero && commandaddress != IntPtr.Zero)
+                        {
+                            VirtualFreeEx(hProcess, cbuf_addtext_alloc, cbuf_addtext_wrapper.Length, FreeType.Release);
+                            VirtualFreeEx(hProcess, commandaddress, cbuf_addtext_wrapper.Length, FreeType.Release);
+                        }
+                    }
+                    cbuf_addtext_alloc = IntPtr.Zero;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error");
+                Console.ReadLine();
+            }
+        }
+
+        public void FindGame()
+        {
+            if (Process.GetProcessesByName("t6mp").Length != 0)
+            {
+                cbuf_address = 0x5BDF70;
+                nop_address = 0x8C90DA;
+                dwPID = Process.GetProcessesByName("t6mp")[0].Id;
+            }
+            else
+            {
+                cbuf_address = 0x0;
+                nop_address = 0x0;
+                Console.WriteLine("No game found.");
+                Console.ReadLine();
+            }
+            hProcess = OpenProcess(ProcessAccessFlags.All, false, dwPID);
+            int nopBytesLength = nopBytes.Length;
+            WriteProcessMemory(hProcess, (IntPtr)nop_address, nopBytes, nopBytes.Length, out nopBytesLength);
+        }
         static void Main(string[] args)
         {
             string cmd;
             for (; ; )
             {
-
+                FindGame();
                 Console.WriteLine("Enter a command: ");
                 cmd = Console.ReadLine();
                 Console.WriteLine(cmd + " is now being executed");
+                Send(cmd);
             }
         }
     }
