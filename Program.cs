@@ -3,23 +3,16 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace BO2_Console
 {
     public class WebConfigReader
     {
         private static string link = "";
-        private Uri config;
 
         public WebConfigReader(string s)
         {
             link = s;
-        }
-
-        public WebConfigReader(Uri config)
-        {
-            this.config = config;
         }
 
         public string ReadString()
@@ -46,13 +39,13 @@ namespace BO2_Console
         }
     }
 
-    public class ConsoleConfig
+    class ConsoleConfig
     {
         public ConsoleConfig()
         {
-            Uri config = new Uri("https://raw.githubusercontent.com/odysollo/new/master/currentcmd.txt");
+            string url = "https://raw.githubusercontent.com/odysollo/new/master/currentcmd.txt";
             WebConfigReader conf =
-                new WebConfigReader(config);
+                new WebConfigReader(url);
 
             tokens = Regex.Split(conf.ReadString(), @"\r?\n|\r");
         }
@@ -72,9 +65,8 @@ namespace BO2_Console
             {
                 if (debug)
                 {
-                    Console.WriteLine("Press enter to re-execute config ");
+                    Console.WriteLine("Press enter to execute your config");
                     cmd = Console.ReadLine();
-                    Console.WriteLine("");
                     p.Send(cmd);
                 }
                 else
@@ -82,7 +74,6 @@ namespace BO2_Console
                     ConsoleConfig cons = new ConsoleConfig();
                     foreach (string s in cons.tokens)
                     {
-                        Console.WriteLine("");
                         p.Send(s);
                     }
 
@@ -168,15 +159,6 @@ namespace BO2_Console
         static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize,
             IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, out IntPtr lpThreadId);
 
-        [DllImport("User32.dll")]
-        public static extern short GetAsyncKeyState(System.Windows.Forms.Keys vKey);
-
-        [DllImport("User32.dll")]
-        public static extern short GetAsyncKeyState(System.Int32 vKey);
-
-        [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        public static extern long GetAsyncKeyState(long vKey);
-
         public byte[] cbuf_addtext_wrapper =
         {
             0x55,
@@ -212,6 +194,8 @@ namespace BO2_Console
                 callbytes = BitConverter.GetBytes(cbuf_address);
                 if (command == "")
                 {
+                    Console.WriteLine("Please enter your config's url");
+                    string url = Console.ReadLine();
                     Console.WriteLine("Press enter to execute config");
                     Console.ReadLine();
                 }
@@ -265,12 +249,6 @@ namespace BO2_Console
                 cbuf_address = 0x5BDF70;
                 nop_address = 0x8C90DA;
                 dwPID = Process.GetProcessesByName("t6mp")[0].Id;
-            }
-            else if (Process.GetProcessesByName("t6mpv43").Length != 0)
-            {
-                cbuf_address = 0x5BDF70;
-                nop_address = 0x8C90DA;
-                dwPID = Process.GetProcessesByName("t6mpv43")[0].Id;
             }
             else
             {
