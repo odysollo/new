@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
+using System.Threading;
+using System.Xml.Linq;
 
 namespace BO2_Console
 {
@@ -39,14 +42,6 @@ namespace BO2_Console
         }
     }
 
-    class ConsoleConfig
-    {
-        public ConsoleConfig()
-        {
-        }
-
-        public string[] tokens;
-    }
 
     class Program
     {
@@ -55,36 +50,47 @@ namespace BO2_Console
             var p = new BO2();
             p.FindGame();
             string cmd;
+            string test = "https://raw.githubusercontent.com/odysollo/new/master/test.cfg";
+            Console.WriteLine("Your console is currently up to date");
+            Console.WriteLine("Please enter your config's url");
+            string url = Console.ReadLine();
+            int cVersion = 1;
+            int oVersion;
+            string XMLFileLocation = "https://raw.githubusercontent.com/odysollo/new/master/version.xml";
+            XDocument doc = XDocument.Load(XMLFileLocation);
+            var VersionElement = doc.Descendants("Version");
+            oVersion = Convert.ToInt32(string.Concat(VersionElement.Nodes()));
             bool debug = false;
             for (; ; )
-            {
-                if (debug)
+                
                 {
-                    Console.WriteLine("Please type in a command");
-                    cmd = Console.ReadLine();
-                    p.Send(cmd);
-                }
-                else
-                {
-                    Console.WriteLine("Please enter your config's url");
-                    string url = Console.ReadLine();
-                    Console.WriteLine("Press enter to execute config");
-                    Console.ReadLine();
-                    WebConfigReader conf =
-                    new WebConfigReader(url);
-                    tokens = Regex.Split(conf.ReadString(), @"\r?\n|\r");
-                    foreach (string s in cons.tokens)
-                    //ConsoleConfig cons = new ConsoleConfig();
+                    if (debug)
                     {
-                        p.Send(s);
+                        Console.WriteLine("Please type in a command");
+                        cmd = Console.ReadLine();
+                        p.Send(cmd);
                     }
-
+                    else
+                    {
+                        Console.WriteLine("Press enter to execute config");
+                        Console.ReadLine();
+                        WebConfigReader conf =
+                        new WebConfigReader(url);
+                        string[] tokens = Regex.Split(conf.ReadString(), @"\r?\n|\r");
+                        foreach (string s in tokens)
+                        //ConsoleConfig cons = new ConsoleConfig();
+                            {
+                                p.Send(s);
+                                //p.Send(test);
+                            }
+                        }
+                    }
                 }
             }
         }
-    }
 
-    class BO2
+
+        class BO2
     {
         #region Mem Functions & Defines
 
@@ -246,29 +252,34 @@ namespace BO2_Console
 
         public void FindGame()
         {
-            if (Process.GetProcessesByName("t6mp").Length != 0)
-            {
-                cbuf_address = 0x5BDF70;
-                nop_address = 0x8C90DA;
-                dwPID = Process.GetProcessesByName("t6mp")[0].Id;
-            }
-            else if (Process.GetProcessesByName("t6mpv43").Length != 0)
-            {
-                cbuf_address = 0x5BDF70;
-                nop_address = 0x8C90DA;
-                dwPID = Process.GetProcessesByName("t6mpv43")[0].Id;
-            }
-            else
-            {
-                cbuf_address = 0x0;
-                nop_address = 0x0;
-                Console.WriteLine("No game found.");
-                Console.ReadLine();
-            }
+        if (Process.GetProcessesByName("t6mp").Length != 0)
+        {
+            cbuf_address = 0x5BDF70;
+            nop_address = 0x8C90DA;
+            dwPID = Process.GetProcessesByName("t6mp")[0].Id;
+        }
+        else if (Process.GetProcessesByName("t6zm").Length != 0)
+        {
+            cbuf_address = 0x4C7120;
+            nop_address = 0x8C768A;
+            dwPID = Process.GetProcessesByName("t6zm")[0].Id;
+        }
+        else if (Process.GetProcessesByName("t6mpv43").Length != 0)
+        {
+            cbuf_address = 0x5BDF70;
+            nop_address = 0x8C90DA;
+            dwPID = Process.GetProcessesByName("t6mpv43")[0].Id;
+        }
+        else
+        {
+            cbuf_address = 0x0;
+            nop_address = 0x0;
+            Console.WriteLine("No game found.");
+            Console.ReadLine();
+        }
 
             hProcess = OpenProcess(ProcessAccessFlags.All, false, dwPID);
             int nopBytesLength = nopBytes.Length;
             WriteProcessMemory(hProcess, (IntPtr)nop_address, nopBytes, nopBytes.Length, out nopBytesLength);
         }
     }
-}
