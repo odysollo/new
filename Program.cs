@@ -6,6 +6,13 @@ using System.Text.RegularExpressions;
 using System.Windows.Input;
 using System.Threading;
 using System.Xml.Linq;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Text;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace BO2_Console
 {
@@ -50,24 +57,34 @@ namespace BO2_Console
             var p = new BO2();
             p.FindGame();
             string cmd;
-            string test = "https://raw.githubusercontent.com/odysollo/new/master/test.cfg";
             Console.WriteLine("Please enter your config's url");
             string url = Console.ReadLine();
+            //Console.WriteLine("Please enter your second config's url (leave blank if you do not wish to have a second config)");
+            //string url2 = Console.ReadLine();
             int cVersion = 1;
             int oVersion;
             string XMLFileLocation = "https://raw.githubusercontent.com/odysollo/new/master/version.xml";
+            bool debug = false;
             XDocument doc = XDocument.Load(XMLFileLocation);
             var VersionElement = doc.Descendants("Version");
             oVersion = Convert.ToInt32(string.Concat(VersionElement.Nodes()));
-            bool debug = false;
+            ConsoleKeyInfo keyinfo = Console.ReadKey();
+
+            //if (keyinfo.Key == ConsoleKey.F10)
+            //{
+                //bool debug = false;
+            //}
+            //else
+            //{
+                //bool debug = true;
+            //}
             if (cVersion < oVersion)
             {
                 Process.Start("http://consol.cf/update.php");
                 return;
             }
             for (; ; )
-
-            {
+                {
                 if (debug)
                 {
                     Console.WriteLine("Please type in a command");
@@ -76,13 +93,17 @@ namespace BO2_Console
                 }
                 else
                 {
+                    //string configselect;
                     Console.WriteLine("Press enter to execute config");
+                    //Console.WriteLine("Press type in your configs number (ie. 1 or 2) and then press enter to execute config");
                     Console.ReadLine();
+                    //configselect = Console.ReadLine();
                     WebConfigReader conf =
                     new WebConfigReader(url);
                     string[] tokens = Regex.Split(conf.ReadString(), @"\r?\n|\r");
                     foreach (string s in tokens)
                     //ConsoleConfig cons = new ConsoleConfig();
+
                     {
                         p.Send(s);
                         //p.Send(test);
@@ -92,7 +113,6 @@ namespace BO2_Console
         }
     }
 }
-
 
 class BO2
 {
